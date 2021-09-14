@@ -1,0 +1,9 @@
+> Include: ../section_108.catala_en
+
+## A few test cases
+
+```catala
+declaration scope Test1:
+  context taxpayer scope TaxPayer
+  context return scope TaxReturn
+```

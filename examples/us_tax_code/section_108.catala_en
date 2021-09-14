@@ -1,0 +1,108 @@
+## Section 108
+
+> Begin metadata
+
+```catala
+declaration scope TaxPayer:
+  # Inputs
+  # ------
+
+  # See insolvency worksheet https://www.irs.gov/pub/irs-pdf/p4681.pdf page 6
+  context fmv_assets content money
+  context liabilities content money
+
+  # Income from discharge of indebtedness, as introduced in 61(a)
+  context discharge_of_indebtedness content money
+
+  # Outputs
+  # -------
+
+  # By how much the taxpayer is insolvent, $0 otherwise
+  context insolvency content money
+  # Whether the taxpayer is insolvent or not -- a boolean explicitly defined in
+  # https://www.irs.gov/pub/irs-pdf/p4681.pdf page 6 line 38, but implicitly
+  # defined in the Tax Code, which "puns" on insolvent vs. insolvency in
+  # 108(d)(3).
+  context is_insolvent content boolean
+
+declaration scope TaxReturn:
+  # Input
+  context taxpayer scope TaxPayer
+
+  # Internal, and a technicality: we assume that gross_income0 is the result of
+  # taking into account all of the other sources of income, along with their
+  # respective limitations. That is, let us assume for the sake of this
+  # example that we have almost fully defined the gross income in Catala (e.g.
+  # capital gains, interest, rents, etc.) EXCEPT for the part about discharge of
+  # indebtedness -- this is gross_income0.
+  context gross_income0 content money
+
+  # Output: after we take into account discharge of indebtedness, our
+  # calculation is complete and we have fully defined the gross income.
+  context gross_income content money
+
+declaration scope Section61a:
+  context taxpayer scope TaxPayer
+  context return scope TaxReturn
+
+declaration scope Section108d3:
+  context taxpayer scope TaxPayer
+
+declaration scope Section108a1B:
+  context return scope TaxReturn
+
+declaration scope Section108a3:
+  context return scope TaxReturn
+```
+
+> End metadata
+
+```catala
+
+scope Section108d3:
+  definition taxpayer.insolvency equals
+    # This is a nonnegative number
+    if taxpayer.liabilities >$ taxpayer.fmv_assets then
+      taxpayer.liabilities -$ taxpayer.fmv_assets
+    else
+      $0
+    # Ideally, we would like a built-in operator: (TODO)
+    # excess_of (assets, liabilities)
+
+  definition taxpayer.is_insolvent equals
+    taxpayer.insolvency >$ $0
+
+scope Section61a:
+  label delta_3
+
+  # This is a simplification: we only take into account list item (11) for the
+  # definition of gross income; in a realistic setting, we would have 14 amounts
+  # added together, exactly as in 61(a).
+  definition return.gross_income equals
+    # gross_income0 might be e.g. salary_gains_income + interest_income + capital_gains_income + etc.
+    return.gross_income0 + taxpayer.discharge_of_indebtedness
+
+scope Section108a1B:
+  label delta_2
+  exception delta_3
+  definition return.gross_income
+  under condition
+    taxpayer.is_insolvent
+  consequence equals
+    return.gross_income0
+
+scope Section108a3:
+  label delta_1
+  exception delta_2
+  definition return.gross_income
+  under condition
+    taxpayer.is_insolvent
+  consequence equals
+    return.gross_income0 +
+    (if taxpayer.insolvency >$ taxpayer.discharge_of_indebtedness then
+      taxpayer.discharge_of_indebtedness
+    else
+      taxpayer.insolvency)
+    # Ideally, we would like a built-in operator to write:
+    # min of (taxpayer.insolvency, taxpayer.cancellation_of_indebtedness)
+```
