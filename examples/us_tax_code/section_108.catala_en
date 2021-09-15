@@ -29,13 +29,13 @@ declaration scope TaxReturn:
   # Input
   context taxpayer scope TaxPayer
 
-  # Internal, and a technicality: we assume that gross_income0 is the result of
-  # taking into account all of the other sources of income, along with their
-  # respective limitations. That is, let us assume for the sake of this
-  # example that we have almost fully defined the gross income in Catala (e.g.
-  # capital gains, interest, rents, etc.) EXCEPT for the part about discharge of
-  # indebtedness -- this is gross_income0.
-  context gross_income0 content money
+  # Here, we assume that the gross income is broken down into each individual
+  # source of gross income, one for each bullet point in 61(a). We also elide,
+  # for the sake of example, all other variables for each one of the 14 bullet
+  # points. The gross_income11 variable is the only we care about for this
+  # example: how much of the discharge of indebtedness shall be included in the
+  # gross income calculation.
+  context gross_income11 content money
 
   # Output: after we take into account discharge of indebtedness, our
   # calculation is complete and we have fully defined the gross income.
@@ -59,6 +59,12 @@ declaration scope Section108a3:
 
 ```catala
 
+scope TaxReturn:
+  definition gross_income equals
+    # gross_income1 + ... +
+    gross_income11
+    # + ... + gross_income14
+
 scope Section108d3:
   definition taxpayer.insolvency equals
     # This is a nonnegative number
@@ -75,12 +81,9 @@ scope Section108d3:
 scope Section61a:
   label delta_3
 
-  # This is a simplification: we only take into account list item (11) for the
-  # definition of gross income; in a realistic setting, we would have 14 amounts
-  # added together, exactly as in 61(a).
-  definition return.gross_income equals
-    # gross_income0 might be e.g. salary_gains_income + interest_income + capital_gains_income + etc.
-    return.gross_income0 + taxpayer.discharge_of_indebtedness
+  # TODO comment
+  definition return.gross_income11 equals
+    taxpayer.discharge_of_indebtedness
 
 scope Section108a1B:
   label delta_2
@@ -89,7 +92,7 @@ scope Section108a1B:
   under condition
     taxpayer.is_insolvent
   consequence equals
-    return.gross_income0
+    $0
 
 scope Section108a3:
   label delta_1
@@ -98,7 +101,6 @@ scope Section108a3:
   under condition
     taxpayer.is_insolvent
   consequence equals
-    return.gross_income0 +
     (if taxpayer.insolvency >$ taxpayer.discharge_of_indebtedness then
       taxpayer.discharge_of_indebtedness
     else
