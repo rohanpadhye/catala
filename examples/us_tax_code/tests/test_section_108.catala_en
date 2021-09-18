@@ -2,8 +2,32 @@
 
 ## A few test cases
 
+> Begin metadata
+
 ```catala
 declaration scope Test1:
   context taxpayer scope TaxPayer
-  context return scope TaxReturn
+  context return scope TaxReturn # with taxpayer
+
+  context line11 scope DischargeOfIndebtedness # with taxpayer, return
+```
+
+> End metadata
+
+For example: There is $1000 debt cancelled. In general, this would be in gross income.
+It’s not in gross income if you’re insolvent. HOWEVER, only to the extent you’re insolvent.
+
+- If your liabilities are $10,000 and your assets are $6,000 - it’s all excluded.
+- If your liabilities are $10,000 and your assets are $9,700 - only $300 is excluded.
+
+```catala
+scope Test1:
+  definition taxpayer.fmv_assets equals $6000
+  definition taxpayer.liabilities equals $10,000
+  definition taxpayer.discharge_of_indebtedness equals $1,000
+
+  definition return.taxpayer equals taxpayer
+  definition line11.return equals return
+
+  assertion return.gross_income11 = $0
 ```

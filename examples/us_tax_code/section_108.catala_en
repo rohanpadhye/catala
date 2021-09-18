@@ -41,31 +41,58 @@ declaration scope TaxReturn:
   # calculation is complete and we have fully defined the gross income.
   context gross_income content money
 
-declaration scope Section61a:
-  context taxpayer scope TaxPayer
-  context return scope TaxReturn
-
-declaration scope Section108d3:
-  context taxpayer scope TaxPayer
-
-declaration scope Section108a1B:
-  context return scope TaxReturn
-
-declaration scope Section108a3:
+declaration scope DischargeOfIndebtedness:
   context return scope TaxReturn
 ```
 
 > End metadata
 
-```catala
+26 U.S. Code § 61 - Gross income defined
 
+(a) General definition. Except as otherwise provided in this subtitle, gross
+income means all income from whatever source derived, including (but not limited
+to) the following items:
+
+  (1) Compensation for services, including fees, commissions, fringe benefits, and similar items;
+  (2) Gross income derived from business;
+  (3) Gains derived from dealings in property;
+  (4) Interest;
+  (5) Rents;
+  (6) Royalties;
+  (7) Dividends;
+  (8) Annuities;
+  (9) Income from life insurance and endowment contracts;
+  (10) Pensions;
+  (11) Income from discharge of indebtedness;
+  (12) Distributive share of partnership gross income;
+  (13) Income in respect of a decedent; and
+  (14) Income from an interest in an estate or trust.
+
+```catala
 scope TaxReturn:
   definition gross_income equals
     # gross_income1 + ... +
     gross_income11
     # + ... + gross_income14
 
-scope Section108d3:
+  # In other words: by default, the income for line (11) *is* the taxpayer's
+  # discharge of indebtedness. As we will see, further rules will refine what
+  # goins into line (11).
+  label delta_3
+  definition gross_income11 equals
+    taxpayer.discharge_of_indebtedness
+```
+
+108(d)(3) Insolvent
+
+For purposes of this section, the term “insolvent” means the excess of
+liabilities over the fair market value of assets. With respect to any discharge,
+whether or not the taxpayer is insolvent, and the amount by which the taxpayer
+is insolvent, shall be determined on the basis of the taxpayer’s assets and
+liabilities immediately before the discharge.
+
+```catala
+scope TaxReturn:
   definition taxpayer.insolvency equals
     # This is a nonnegative number
     if taxpayer.liabilities >$ taxpayer.fmv_assets then
@@ -77,15 +104,18 @@ scope Section108d3:
 
   definition taxpayer.is_insolvent equals
     taxpayer.insolvency >$ $0
+```
 
-scope Section61a:
-  label delta_3
+108(a)(1)
 
-  # TODO comment
-  definition return.gross_income11 equals
-    taxpayer.discharge_of_indebtedness
+In general: Gross income does not include any amount which (but for this
+subsection) would be includible in gross income by reason of the discharge (in
+whole or in part) of indebtedness of the taxpayer if—
+(...)
+(B) the discharge occurs when the taxpayer is insolvent,
 
-scope Section108a1B:
+```catala
+scope DischargeOfIndebtedness:
   label delta_2
   exception delta_3
   definition return.gross_income
@@ -93,8 +123,16 @@ scope Section108a1B:
     taxpayer.is_insolvent
   consequence equals
     $0
+```
 
-scope Section108a3:
+108(a)(3)
+
+Insolvency exclusion limited to amount of insolvency: In the case of a discharge
+to which paragraph (1)(B) applies, the amount excluded under paragraph (1)(B)
+shall not exceed the amount by which the taxpayer is insolvent.
+
+```catala
+scope DischargeOfIndebtedness:
   label delta_1
   exception delta_2
   definition return.gross_income
