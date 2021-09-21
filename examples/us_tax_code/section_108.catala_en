@@ -29,20 +29,18 @@ declaration scope TaxReturn:
   # Input
   context taxpayer scope TaxPayer
 
-  # Here, we assume that the gross income is broken down into each individual
-  # source of gross income, one for each bullet point in 61(a). We also elide,
-  # for the sake of example, all other variables for each one of the 14 bullet
-  # points. The gross_income11 variable is the only we care about for this
-  # example: how much of the discharge of indebtedness shall be included in the
-  # gross income calculation.
-  context gross_income11 content money
-
-  # Output: after we take into account discharge of indebtedness, our
-  # calculation is complete and we have fully defined the gross income.
+  # Input-Output: initially $0, then various scopes (e.g. SalaryIncome,
+  # CapitalGains, and our very own DischargeOfIndebtedness) increase this
+  # quantity with their own respective amounts.
   context gross_income content money
 
 declaration scope DischargeOfIndebtedness:
+  # Input-Output: we override return.gross_income
   context return scope TaxReturn
+
+  # Internal: this scope computes whatever amount from (11) should go towards
+  # the gross income
+  context gross_income11 content money
 ```
 
 > End metadata
@@ -69,15 +67,18 @@ to) the following items:
   (14) Income from an interest in an estate or trust.
 
 ```catala
-scope TaxReturn:
-  definition gross_income equals
-    # gross_income1 + ... +
+scope DischargeOfIndebtedness:
+  replace definition return.gross_income equals
+    # whatever has been previously counted towards gross income (e.g.
+    # CapitalGains) by other scopes
+    return.gross_income +
+    # plus what counts for "line 11", i.e. the quantity computed by the scope
+    # DischargeOfIndebtedness
     gross_income11
-    # + ... + gross_income14
 
-  # In other words: by default, the income for line (11) *is* the taxpayer's
+  # This says: by default, the income for line (11) *is* the taxpayer's
   # discharge of indebtedness. As we will see, further rules will refine what
-  # goins into line (11).
+  # goes into line (11).
   label delta_3
   definition gross_income11 equals
     taxpayer.discharge_of_indebtedness
@@ -118,7 +119,7 @@ whole or in part) of indebtedness of the taxpayer if—
 scope DischargeOfIndebtedness:
   label delta_2
   exception delta_3
-  definition return.gross_income
+  definition gross_income11
   under condition
     taxpayer.is_insolvent
   consequence equals
@@ -135,7 +136,7 @@ shall not exceed the amount by which the taxpayer is insolvent.
 scope DischargeOfIndebtedness:
   label delta_1
   exception delta_2
-  definition return.gross_income
+  definition gross_income11
   under condition
     taxpayer.is_insolvent
   consequence equals
