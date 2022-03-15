@@ -1,6 +1,56 @@
 ## The US Tax Code
 
+
 ```catala-metadata
+# You might consider moving the notion of a taxable entity to a `TIN` .
+# https://www.irs.gov/individuals/international-taxpayers/taxpayer-identification-numbers-tin
+# 
+#"""
+# A Taxpayer Identification Number (TIN) is an identification number used by the 
+# Internal Revenue Service (IRS) in the administration of tax laws. It is issued 
+# either by the Social Security Administration (SSA) or by the IRS. A Social 
+# Security number (SSN) is issued by the SSA whereas all other TINs are issued 
+# by the IRS.
+#"""
+# 
+# Taxpayer Identification Numbers
+#     Social Security number "SSN"
+#     Employer Identification Number "EIN"
+#     Individual Taxpayer Identification Number "ITIN"
+#     Taxpayer Identification Number for Pending U.S. Adoptions "ATIN"
+#     Preparer Taxpayer Identification Number "PTIN"
+declaration enumeration TIN:
+  -- SSN content integer
+  -- EIN content integer
+  -- ITIN content integer
+  -- ATIN content integer
+  -- PTIN content integer
+
 declaration structure Person:
   data id content integer
+
+
+#declaration structure Period:
+#  data begin content date
+#  data end content date
+#
+#
+#declaration scope PeriodMerge:
+#  context periods1 content collection Period
+#  context periods2 content collection Period
+#  output output_periods content collection Period
+#
+#scope PeriodMerge:
+#  # Placeholders, overwritten by caller
+#  definition periods1 equals []
+#  definition periods2 equals []
+#
+#  # TODO: find a way to implement the merging of two collections of date
+#  # periods into a single non-overlapping collection of date periods such
+#  # that the output covers both input date ranges.
+#  definition output_periods equals []
+
+declaration enumeration GainOrLoss:
+  -- Gain content money
+  -- Loss content money
 ```

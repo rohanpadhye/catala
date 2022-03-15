@@ -1,0 +1,72 @@
+## Test
+
+> Include: ../section_1041v1.catala_en
+
+```catala
+# Canonical happy-path example 
+#
+# A straight-up transfer between spouses; no gain or loss recognized, 
+# and the transferee inherits the transferor's basis.
+declaration scope Test1:
+  section_1041 scope Section1041
+
+scope Test1:
+  definition section_1041.transferor_adjusted_basis equals $1,000
+  definition section_1041.fair_market_value equals $12,000
+  definition section_1041.transfer_related_to_cessation_of_marriage equals false
+  definition section_1041.transfer_date equals |2020-01-01|
+  definition section_1041.marital_status_as_of_transfer_date equals Married
+  definition section_1041.spouse_is_nonresident_alien equals false
+  definition section_1041.transferee equals Spouse
+  assertion section_1041.gain_or_loss_recognized = Gain content $0
+  assertion section_1041.transferee_adjusted_basis = $1,000
+```
+
+```catala
+# Facts and outcome taken from IRS publication 504, p. 20
+# https://www.irs.gov/pub/irs-pdf/p504.pdf
+# 
+# Example. You own property with a fair market value of
+# $12,000 and an adjusted basis of $1,000. You transfer the
+# property in trust for the benefit of your spouse. The trust
+# didn’t assume any liabilities. The property is subject to a
+# $5,000 liability. Your recognized gain is $4,000 ($5,000 − $1,000).
+declaration scope Test2:
+  section_1041 scope Section1041
+
+scope Test2:
+  definition section_1041.transferor_adjusted_basis equals $1,000
+  definition section_1041.fair_market_value equals $12,000
+  definition section_1041.transfer_related_to_cessation_of_marriage equals false
+  definition section_1041.transfer_date equals |2020-01-01|
+  definition section_1041.marital_status_as_of_transfer_date equals Married
+  definition section_1041.spouse_is_nonresident_alien equals false
+  definition section_1041.transferee equals Trust content $5,000
+  assertion section_1041.gain_or_loss_recognized = Gain content $4,000
+  assertion section_1041.transferee_adjusted_basis = $5,000
+```
+
+
+```catala
+# *This will fail* since the issue with the return values being either `Option<_>`
+# or delegating to 1001/1011 hasn't been addressed yet.
+#
+# The transferee is a nonresident alien, meaning subsection (a) no longer applies,
+# so we should either get back `None` for the outputs since the nonrecognition doesn't
+# apply at all, or we should get back 
+# `gain_or_loss_recognized = Section1001 = Gain $11,000`
+# `transferee_adjusted_basis = Section1011 = $12,000`
+declaration scope Test3:
+  section_1041 scope Section1041
+
+scope Test3:
+  definition section_1041.transferor_adjusted_basis equals $1,000
+  definition section_1041.fair_market_value equals $12,000
+  definition section_1041.transfer_related_to_cessation_of_marriage equals false
+  definition section_1041.transfer_date equals |2020-01-01|
+  definition section_1041.marital_status_as_of_transfer_date equals Married
+  definition section_1041.spouse_is_nonresident_alien equals true
+  definition section_1041.transferee equals Trust content $5,000
+  assertion section_1041.gain_or_loss_recognized = Gain content $11,000
+  assertion section_1041.transferee_adjusted_basis = $12,000
+```

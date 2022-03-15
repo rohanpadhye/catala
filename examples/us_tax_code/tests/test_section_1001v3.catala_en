@@ -1,0 +1,186 @@
+## Test
+
+> Include: ../section_1001v3.catala_en
+
+```catala
+# Based on the facts of 26 CFR 1.1014-5(d) example 1
+declaration scope Test1:
+  section_1001 scope Section1001
+
+# in `match with pattern`, the token `pattern` seems unnecessary
+# This thing with the parentheses seems unnecessary
+# The content/of thing is bizarre. It's `of` in a pattern match,
+# but content for costruction.
+scope Test1:
+  definition section_1001.fmv_property_received equals $0
+  definition section_1001.money_received equals $370,000
+  definition section_1001.adjusted_basis equals $387,440
+  definition section_1001.property_tax equals PropertyTax.None
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $387,440
+    -- amount_of_adjusted_basis_attributable_to_1015: $0
+    -- amount_of_adjusted_basis_attributable_to_1041: $0
+    -- entire_term_interest_transferred: false
+  })
+  assertion section_1001.gain_or_loss_recognized = Gain content $370,000
+```
+
+
+```catala
+# Based on the facts of 26 CFR 1.1014-5(d) example 2
+declaration scope Test2:
+  section_1001 scope Section1001
+
+scope Test2:
+  definition section_1001.fmv_property_received equals $0
+  definition section_1001.money_received equals $410,969
+  definition section_1001.property_tax equals PropertyTax.None
+  definition section_1001.adjusted_basis equals $316,130
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $316,130
+    -- amount_of_adjusted_basis_attributable_to_1015: $0
+    -- amount_of_adjusted_basis_attributable_to_1041: $0
+    -- entire_term_interest_transferred: false
+  })
+  assertion section_1001.gain_or_loss_recognized = Gain content $410,969
+```
+
+```catala
+# amount realized := 11
+# adjusted basis := 15
+# loss recognized := 4
+declaration scope Test3:
+  section_1001 scope Section1001
+
+scope Test3:
+  definition section_1001.fmv_property_received equals $10
+  definition section_1001.money_received equals $0
+  definition section_1001.adjusted_basis equals $15
+  definition section_1001.property_tax equals  PropertyTax.Some content (PropertyTaxInfo {
+    -- reimbursed_s164_property_tax: $10,000
+    -- unreimbursed_s164_property_tax_paid_by_purchaser: $1
+  })
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $316,130
+    -- amount_of_adjusted_basis_attributable_to_1015: $0
+    -- amount_of_adjusted_basis_attributable_to_1041: $0
+    -- entire_term_interest_transferred: true
+  })
+  assertion section_1001.gain_or_loss_recognized = Loss content $4
+```
+
+```catala
+# amount realized := (100 + 50 + 10) = 160
+# adjusted basis := (130 - 10 - 20 - 30) = 70
+# gain recognized := 160 - 70 = 90
+declaration scope Test4:
+  section_1001 scope Section1001
+
+scope Test4:
+  definition section_1001.fmv_property_received equals $100
+  definition section_1001.money_received equals $50
+  definition section_1001.adjusted_basis equals $130
+  definition section_1001.property_tax equals PropertyTax.Some content (PropertyTaxInfo {
+    -- reimbursed_s164_property_tax: $10,000
+    -- unreimbursed_s164_property_tax_paid_by_purchaser: $10
+  })
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $10
+    -- amount_of_adjusted_basis_attributable_to_1015: $20
+    -- amount_of_adjusted_basis_attributable_to_1041: $30
+    -- entire_term_interest_transferred: false
+  })
+  assertion section_1001.gain_or_loss_recognized = Gain content $90
+```
+
+```catala
+# amount realized := (100 + 50 + 10) = 160
+# adjusted basis := (300 - 10 - 20 - 30) = 240
+# loss recognized := 160 - 240 = -80
+declaration scope Test5:
+  section_1001 scope Section1001
+
+scope Test5:
+  definition section_1001.fmv_property_received equals $100
+  definition section_1001.money_received equals $50
+  definition section_1001.adjusted_basis equals $300
+  definition section_1001.property_tax equals PropertyTax.Some content (PropertyTaxInfo {
+    -- reimbursed_s164_property_tax: $10,000
+    -- unreimbursed_s164_property_tax_paid_by_purchaser: $10
+  })
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $10
+    -- amount_of_adjusted_basis_attributable_to_1015: $20
+    -- amount_of_adjusted_basis_attributable_to_1041: $30
+    -- entire_term_interest_transferred: false
+  })
+  assertion section_1001.gain_or_loss_recognized = Loss content $80
+```
+
+```catala
+declaration scope Test6:
+  section_1001 scope Section1001
+
+scope Test6:
+  definition section_1001.fmv_property_received equals $0
+  definition section_1001.money_received equals $370,000
+  definition section_1001.adjusted_basis equals $387,440
+  definition section_1001.property_tax equals PropertyTax.None
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $387,440
+    -- amount_of_adjusted_basis_attributable_to_1015: $0
+    -- amount_of_adjusted_basis_attributable_to_1041: $0
+    -- entire_term_interest_transferred: false
+  })
+  assertion section_1001.gain_or_loss_recognized = Gain content $370,000
+```
+
+```catala
+# amount realized := 310,000
+# adjusted basis := 250,000
+# gain recognized := 60,000
+declaration scope Test7:
+  section_1001 scope Section1001
+
+scope Test7:
+  definition section_1001.fmv_property_received equals $300,000
+  definition section_1001.money_received equals $0
+  definition section_1001.adjusted_basis equals $250,000
+  definition section_1001.property_tax equals  PropertyTax.Some content (PropertyTaxInfo {
+    -- reimbursed_s164_property_tax: $10,000
+    -- unreimbursed_s164_property_tax_paid_by_purchaser: $10,000
+  })
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $0
+    -- amount_of_adjusted_basis_attributable_to_1015: $0
+    -- amount_of_adjusted_basis_attributable_to_1041: $0
+    -- entire_term_interest_transferred: true
+  })
+
+  assertion section_1001.gain_or_loss_recognized = Gain content $60,000
+```
+
+```catala
+# amount realized := 310,000
+# adjusted basis := 310,000
+# gain recognized := 0
+declaration scope Test8:
+  section_1001 scope Section1001
+
+scope Test8:
+  definition section_1001.fmv_property_received equals $300,000
+  definition section_1001.money_received equals $0
+  definition section_1001.adjusted_basis equals $310,000
+  definition section_1001.property_tax equals PropertyTax.Some content (PropertyTaxInfo {
+    -- reimbursed_s164_property_tax: $10,000
+    -- unreimbursed_s164_property_tax_paid_by_purchaser: $10,000
+  })
+  definition section_1001.term_interest equals TermInterest.Some content (TermInterestInfo {
+    -- amount_of_adjusted_basis_attributable_to_1014: $0
+    -- amount_of_adjusted_basis_attributable_to_1015: $0
+    -- amount_of_adjusted_basis_attributable_to_1041: $0
+    -- entire_term_interest_transferred: true
+  })
+
+  assertion section_1001.gain_or_loss_recognized = Gain content $0
+```
