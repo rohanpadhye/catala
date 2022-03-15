@@ -18,18 +18,21 @@ declaration scope Section1001:
   input fmv_property_received content money
   input money_received content money
   input adjusted_basis content money
+    state non_effective
+    state effective
   input property_tax content PropertyTax
   input term_interest content TermInterest
 
   # The semantics of `rule` don't necessarily make sense here, because we can't say
   # it's false by default, and changing it to `section_e_1_doesnt_apply` starts
   # getting into `!!p = p` territory.
+  # > Denis: indeed, I've had this a few times. True by defaults boolean
+  #   should be available somehow.
   internal section_e_1_applies content boolean
 
   # The adjusted basis minus the portions attributable to 1014, 1015, or 1041 if the
-  # property being transferred is a qualifying term interest, and the taxpayer is not 
+  # property being transferred is a qualifying term interest, and the taxpayer is not
   # transferring their entire interest in the property.
-  internal effective_adjusted_basis content money
   internal amount_realized content money
   internal gain_or_loss_realized content GainOrLoss
 
@@ -46,9 +49,9 @@ provided in such section for determining loss over the amount realized.
 ```catala
 scope Section1001:
   definition gain_or_loss_realized equals
-    if amount_realized >=$ effective_adjusted_basis
-    then Gain content (amount_realized -$ effective_adjusted_basis)
-    else Loss content (effective_adjusted_basis -$ amount_realized)
+    if amount_realized >=$ adjusted_basis
+    then Gain content (amount_realized -$ adjusted_basis)
+    else Loss content (adjusted_basis -$ amount_realized)
 ```
 
 ### (b) Amount realized
@@ -57,7 +60,7 @@ The amount realized from the sale or other disposition of property shall be the
 sum of any money received plus the fair market value of the property (other than
 money) received. In determining the amount realized—
 
-#### (1) 
+#### (1)
 there shall not be taken into account any amount received as reimbursement
 for real property taxes which are treated under section 164(d) as imposed on the
 purchaser, and
@@ -69,9 +72,9 @@ are to be paid by the purchaser.
 
 ```catala
 scope Section1001:
-  definition amount_realized equals 
-    fmv_property_received 
-    +$ money_received 
+  definition amount_realized equals
+    fmv_property_received
+    +$ money_received
     +$ property_tax.unreimbursed_s164_property_tax_paid_by_purchaser
 ```
 
@@ -104,13 +107,11 @@ property) shall be disregarded.
 
 
 ```catala
-# There's no way to set a default for `effective_adjusted_basis`,
-# so in addition to this, we need something else.
-scope Section1001 under condition section_e_1_applies:
-  definition effective_adjusted_basis equals
-    adjusted_basis -$ 
-    (term_interest.amount_of_adjusted_basis_attributable_to_1014 
-    +$ term_interest.amount_of_adjusted_basis_attributable_to_1015 
+scope Section1001:
+  definition adjusted_basis state effective equals
+    adjusted_basis -$
+    (term_interest.amount_of_adjusted_basis_attributable_to_1014
+    +$ term_interest.amount_of_adjusted_basis_attributable_to_1015
     +$ term_interest.amount_of_adjusted_basis_attributable_to_1041)
 ```
 
@@ -125,7 +126,7 @@ For purposes of paragraph (1), the term “term interest in property” means—
 (C) an income interest in a trust.
 
 ```catala
-# CB: There should be a way to get the rendered output (pdf/tex) to show readers the 
+# CB: There should be a way to get the rendered output (pdf/tex) to show readers the
 # code that accounts for this, even if it's up in the metadata.
 ```
 
@@ -136,10 +137,8 @@ a transaction in which the entire interest in property is transferred to
 any person or persons.
 
 ```catala
-# This is one of a few places in which a pattern match as a scope guard
-# where the matched contents are available for the rest of the scope would
-# be nice.
 scope Section1001:
-  definition section_e_1_applies equals
+  exception definition adjusted_basis state effective under condition
     not term_interest.entire_term_interest_transferred
+  consequence equals adjusted_basis
 ```
