@@ -1,6 +1,6 @@
 > Include: ./preamble.catala_en
 
-## 26 U.S. Code § 1041 - Transfers of property between spouses or incident to divorce 
+## 26 U.S. Code § 1041 - Transfers of property between spouses or incident to divorce
 
 
 ```catala-metadata
@@ -12,14 +12,13 @@ declaration enumeration MaritalStatus:
 # for the benefit of the spouse/former spouse.
 declaration enumeration Transferee:
   -- Spouse
-  # content is the sum of the liabilities assumed by the trust, and the 
+  # content is the sum of the liabilities assumed by the trust, and the
   # liabilites to which the property is subject. See `Test2` for an example.
   -- Trust content money
 
 
 declaration scope Section1041:
   input transferor_adjusted_basis content money
-  input fair_market_value content money
   input transfer_date content date
   input transferee content Transferee
   input marital_status_as_of_transfer_date content MaritalStatus
@@ -27,42 +26,17 @@ declaration scope Section1041:
   input spouse_is_nonresident_alien content boolean
 
   internal transfer_incident_to_divorce condition
-  internal subsection_a_applies condition
-  internal trust_gain_recognized content money
+  internal section_applies condition
 
-  # These either need to return `Option<_>`, returning `None` if subsection (a)
-  # doesn't apply (because this entire section essentially doesn't apply), or you need to
-  # get `gain_or_loss_recognized` from Section1001, and `transferee_adjusted_basis` 
-  # from Section1011, which would require a much larger set of argumens to 1041.
-  #
-  # IMO the former solution is preferrable.
-  output gain_or_loss_recognized content GainOrLoss
+  output gain_or_loss_recognized content boolean
   output transferee_adjusted_basis content money
-```
 
-```catala
-# This was the most ergonomic way I found to do this, but it's not great.
-#
-# There are two problems:
-# 1. 
-# The actual test for whether subsection (a) applies is spread out across the statute. 
-# The first two components are listed in subsection (a) itself, but `transfer_incident_to_divorce` 
-# is defined in (c), and the trickier part is that the `spouse_is_nonresident_alien` 
-# catch isn't mentioned until subsection (d).
-#
-# 2.
-# We need to retain a witness of whether subsection (a) applied in order to properly
-# handle subsection (b), which applies "In the case of any transfer of property described 
-# in subsection (a)".
-#
-# One thing that should not be considered an acceptable solution is moving logic between
-# subsections in order to make things work. For example, moving `spouse_is_nonresident_alien` 
-# into a scope guard/condition for subsection (a) should not be considered acceptable since
-# it really undermines the literate programming value proposition.
 scope Section1041:
-  definition subsection_a_applies equals
-    (marital_status_as_of_transfer_date with pattern Married or transfer_incident_to_divorce)
-    and not spouse_is_nonresident_alien
+  # This is a bit awkward, if the section does not apply we need to return
+  # something anyway, hence this definition
+  label base definition transferee_adjusted_basis under condition
+    not section_applies
+  consequence equals $0
 ```
 
 ### (a) General rule
@@ -73,24 +47,15 @@ No gain or loss shall be recognized on a transfer of property from an individual
 (2) a former spouse, but only if the transfer is incident to the divorce.
 
 ```catala
-scope Section1041 under condition subsection_a_applies:
-  # I would consider this sort of a hack since it directly contradicts 
-  # the local text, but is correct globally.
-  definition gain_or_loss_recognized equals Gain content trust_gain_recognized
-```
+scope Section1041:
+  label base rule section_applies under condition
+    match marital_status_as_of_transfer_date with pattern
+     -- Married: true
+     -- DivorcedAsOf of date_divorce: transfer_incident_to_divorce
+  consequence fulfilled
 
-```catala
-# Ad-hoc implementation to get around the issue mentioned in the comment 
-# decorating the section's output values. This should probably just return 
-# `None` for both values, since 1041 doesn't tell you what's supposed to 
-# happen if subsection (a) doesn't apply.
-scope Section1041 under condition not subsection_a_applies :
-  definition gain_or_loss_recognized equals 
-    if fair_market_value >=$ transferor_adjusted_basis
-    then Gain content (fair_market_value -$ transferor_adjusted_basis)
-    else Loss content (transferor_adjusted_basis -$ fair_market_value)
-
-  definition transferee_adjusted_basis equals fair_market_value
+  definition gain_or_loss_recognized equals
+     not section_applies
 ```
 
 ### (b) Transfer treated as gift; transferee has transferor’s basis
@@ -100,13 +65,8 @@ In the case of any transfer of property described in subsection (a)—
 (2) the basis of the transferee in the property shall be the adjusted basis of the transferor.
 
 ```catala
-# Having to add `trust_gain_recognized` here is another instance of moving things across
-# sections in a way that really violates the literate programming model.
-#
-# If we extract this as a local variable `effective_transferor_adjusted_basis` 
-# we're sort of getting worse IMO.
-scope Section1041 under condition subsection_a_applies:
-  definition transferee_adjusted_basis equals transferor_adjusted_basis +$ trust_gain_recognized
+scope Section1041 under condition section_applies:
+  label base definition transferee_adjusted_basis equals transferor_adjusted_basis
 ```
 
 ### (c) Incident to divorce
@@ -127,48 +87,46 @@ scope Section1041:
 ```
 
 ### (d) Special rule where spouse is nonresident alien
-Subsection (a) shall not apply if the spouse (or former spouse) of the individual 
+
+Subsection (a) shall not apply if the spouse (or former spouse) of the individual
 making the transfer is a nonresident alien.
 
 ```catala
-# ad-hoc implementation is in the definition of `subsection_a_applies`
+scope Section1041:
+  label nonresident exception base rule section_applies under condition
+    spouse_is_nonresident_alien
+  consequence not fulfilled
 ```
 
 ### (e) Transfers in trust where liability exceeds basis
 
 Subsection (a) shall not apply to the transfer of property in trust to the extent that—
 
-(1) the sum of the amount of the liabilities assumed, plus the amount of the liabilities 
+(1) the sum of the amount of the liabilities assumed, plus the amount of the liabilities
 to which the property is subject, exceeds
 
 (2) the total of the adjusted basis of the property transferred.
 
 ```catala
 scope Section1041:
-  definition trust_gain_recognized equals
+  exception nonresident rule section_applies under condition
     match transferee with pattern
-    -- Spouse: $0
-    -- Trust of sum_liabilities: 
-      (if (sum_liabilities -$ transferor_adjusted_basis) <$ $0 
-      then $0 
-      else (sum_liabilities -$ transferor_adjusted_basis))
-
-    # `with` appears to be a keyword, so the `pattern` and `--` tokens, as well 
-    # as the outer parentheses don't seem like they should be required to parse this. 
-    #
-    # Developers should just be able to write
-    #```
-    # match transferee with
-    #   Spouse: $0
-    #   Trust of sum_liabilities: max $0 (sum_liabilities -$ transferror_adjusted_basis)
-    #```
+    -- Spouse: false
+    -- Trust of sum_liabilities: sum_liabilities >$ transferor_adjusted_basis
+  consequence not fulfilled
 ```
 
-Proper adjustment shall be made under subsection (b) in the basis of the transferee in 
+Proper adjustment shall be made under subsection (b) in the basis of the transferee in
 such property to take into account gain recognized by reason of the preceding sentence.
 
 ```catala
-# ad-hoc implementation is in subsection (b)
+scope Section1041:
+  exception base definition transferee_adjusted_basis under condition
+    transferee with pattern Trust and section_applies
+  consequence equals
+    match transferee with pattern
+    -- Spouse: $0 # should not happen
+    -- Trust of sum_liabilities: sum_liabilities
 ```
 
 
