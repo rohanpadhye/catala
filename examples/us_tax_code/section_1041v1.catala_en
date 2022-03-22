@@ -30,6 +30,8 @@ declaration scope Section1041:
 
   output gain_or_loss_recognized content boolean
   output transferee_adjusted_basis content money
+    state before_trust
+    state after_trust
 
 scope Section1041:
   # This is a bit awkward, if the section does not apply we need to return
@@ -66,7 +68,8 @@ In the case of any transfer of property described in subsection (a)—
 
 ```catala
 scope Section1041 under condition section_applies:
-  label base definition transferee_adjusted_basis equals transferor_adjusted_basis
+  label base definition transferee_adjusted_basis state before_trust
+    equals transferor_adjusted_basis
 ```
 
 ### (c) Incident to divorce
@@ -121,12 +124,15 @@ such property to take into account gain recognized by reason of the preceding se
 
 ```catala
 scope Section1041:
-  exception base definition transferee_adjusted_basis under condition
-    transferee with pattern Trust and section_applies
-  consequence equals
-    match transferee with pattern
-    -- Spouse: $0 # should not happen
-    -- Trust of sum_liabilities: sum_liabilities
+  definition transferee_adjusted_basis state trust equals
+    if
+      transferee with pattern Trust and section_applies
+    then
+      match transferee with pattern
+      -- Spouse: $0 # should not happen
+      -- Trust of sum_liabilities: transferee_adjusted_basis +$ sum_liabilities
+    else
+      transferee_adjusted_basis
 ```
 
 

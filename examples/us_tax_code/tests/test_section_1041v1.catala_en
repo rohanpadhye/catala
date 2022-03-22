@@ -41,7 +41,7 @@ scope Test2:
   definition section_1041.spouse_is_nonresident_alien equals false
   definition section_1041.transferee equals Trust content $5,000
   assertion section_1041.gain_or_loss_recognized = true
-  assertion section_1041.transferee_adjusted_basis = $0
+  assertion section_1041.transferee_adjusted_basis = $4000
 ```
 
 
