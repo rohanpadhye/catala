@@ -19,6 +19,7 @@
 (** The information carried in global identifiers *)
 module type Info = sig
   type info
+  [@@deriving yojson]
 
   val to_string : info -> string
   val format : Format.formatter -> info -> unit
@@ -40,7 +41,9 @@ module MarkedString : Info with type info = string Marked.pos
     time. *)
 module type Id = sig
   type t
+  [@@deriving yojson]
   type info
+  [@@deriving yojson]
 
   val fresh : info -> t
   val get_info : t -> info

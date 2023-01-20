@@ -16,11 +16,41 @@
 
 (* An integer number of cents *)
 type money = Z.t
+let money_of_yojson (json: Yojson.Safe.t) : money = 
+  match json with
+  | `String s -> Z.of_string s
+  | _ -> assert false
+
+let yojson_of_money (s: money): Yojson.Safe.t =
+  `String (Z.to_string s)
+
+let _ = yojson_of_money
+
 type integer = Z.t
+let integer_of_yojson (json: Yojson.Safe.t) : integer = 
+  match json with
+  | `String s -> Z.of_string s
+  | _ -> assert false
+
+let yojson_of_integer (s: integer): Yojson.Safe.t =
+  `String (Z.to_string s)
+
 type decimal = Q.t
+let decimal_of_yojson (json: Yojson.Safe.t) : decimal = 
+  match json with
+  | `String s -> Q.of_string s
+  | _ -> assert false
+
+let yojson_of_decimal (s: decimal): Yojson.Safe.t =
+  `String (Q.to_string s)
+
+
+let _ = yojson_of_integer
+let _ = yojson_of_decimal
 type date = Dates_calc.Dates.date
 type duration = Dates_calc.Dates.period
 type 'a eoption = ENone of unit | ESome of 'a
+[@@deriving yojson]
 
 type source_position = {
   filename : string;

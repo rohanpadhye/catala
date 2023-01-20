@@ -18,10 +18,12 @@
 (** AST node annotations (used for position, type, etc.) *)
 
 type ('a, 'm) t = 'a * 'm
+[@@deriving yojson]
 (** Everything related to the source code should keep at least its position
     stored, to improve error messages *)
 
 type 'a pos = ('a, Pos.t) t
+[@@deriving yojson]
 (** The type of marks containing only position information *)
 
 val mark : 'm -> 'a -> ('a, 'm) t

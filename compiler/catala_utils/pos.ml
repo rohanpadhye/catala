@@ -14,7 +14,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-type t = { code_pos : Lexing.position * Lexing.position; law_pos : string list }
+type t = {
+  code_pos : ((Lexing.position [@opaque]) * (Lexing.position [@opaque])) ; law_pos : string list }
+[@@deriving yojson]
+
 
 let from_lpos (p : Lexing.position * Lexing.position) : t =
   { code_pos = p; law_pos = [] }

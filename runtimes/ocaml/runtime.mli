@@ -19,9 +19,14 @@
 
 (** {1 Types} *)
 
+
+
 type money
+[@@deriving yojson]
 type integer
+[@@deriving yojson]
 type decimal
+[@@deriving yojson]
 type date
 type duration
 

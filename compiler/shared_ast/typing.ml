@@ -20,17 +20,16 @@
 open Catala_utils
 module A = Definitions
 
-module Any =
-  Uid.Make
-    (struct
-      type info = unit
 
-      let to_string _ = "any"
-      let format fmt () = Format.fprintf fmt "any"
-      let equal _ _ = true
-      let compare _ _ = 0
-    end)
-    ()
+module Any = Uid.Make (struct
+type info = unit
+[@@deriving yojson]
+
+let to_string _ = "any"
+let format fmt () = Format.fprintf fmt "any"
+let equal _ _ = true
+let compare _ _ = 0
+end) ()
 
 type unionfind_typ = naked_typ Marked.pos UnionFind.elem
 (** We do not reuse {!type: Shared_ast.typ} because we have to include a new

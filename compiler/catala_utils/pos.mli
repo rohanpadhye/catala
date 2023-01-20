@@ -17,6 +17,7 @@
 (** Source code position *)
 
 type t
+[@@deriving yojson]
 (** A position in the source code is a file, as well as begin and end location
     of the form col:line *)
 

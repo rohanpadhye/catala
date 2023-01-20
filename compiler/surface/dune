@@ -11,7 +11,7 @@
   dates_calc
   shared_ast)
  (preprocess
-  (pps sedlex.ppx visitors.ppx)))
+  (pps sedlex.ppx visitors.ppx ppx_yojson_conv)))
 
 (rule
  (with-stdout-to

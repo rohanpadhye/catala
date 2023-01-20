@@ -16,7 +16,9 @@
    the License. *)
 
 type ('a, 'm) t = 'a * 'm
+[@@deriving yojson]
 type 'a pos = ('a, Pos.t) t
+[@@deriving yojson]
 
 let mark m e : ('a, 'm) t = e, m
 let unmark ((x, _) : ('a, 'm) t) : 'a = x

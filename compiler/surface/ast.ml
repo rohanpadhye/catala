@@ -31,19 +31,20 @@ open Catala_utils
 (** {1 Type definitions} *)
 
 type uident = (string[@opaque])
-[@@deriving
+[@@deriving  yojson, yojson,
   visitors { variety = "map"; name = "uident_map"; nude = true },
     visitors { variety = "iter"; name = "uident_iter"; nude = true }]
+    
 (** Constructors are CamelCase *)
 
 type lident = (string[@opaque])
-[@@deriving
+[@@deriving  yojson, yojson,
   visitors { variety = "map"; name = "lident_map"; nude = true },
     visitors { variety = "iter"; name = "lident_iter"; nude = true }]
 (** Idents are snake_case *)
 
 type path = uident Marked.pos list
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -58,7 +59,7 @@ type path = uident Marked.pos list
       }]
 
 type scope_var = lident Marked.pos list
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -82,7 +83,7 @@ type primitive_typ =
   | Text
   | Date
   | Named of path * uident Marked.pos
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -99,7 +100,7 @@ type primitive_typ =
 type base_typ_data =
   | Primitive of primitive_typ
   | Collection of base_typ_data Marked.pos
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -114,7 +115,7 @@ type base_typ_data =
       }]
 
 type base_typ = Condition | Data of base_typ_data
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -134,7 +135,7 @@ type func_typ = {
   arg_typ : base_typ Marked.pos;
   return_typ : base_typ Marked.pos;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -153,7 +154,7 @@ type func_typ = {
 type typ = naked_typ Marked.pos
 
 and naked_typ = Base of base_typ | Func of func_typ
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -173,7 +174,7 @@ type struct_decl_field = {
   struct_decl_field_name : lident Marked.pos;
   struct_decl_field_typ : typ;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -191,7 +192,7 @@ type struct_decl = {
   struct_decl_name : uident Marked.pos;
   struct_decl_fields : struct_decl_field Marked.pos list;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -209,7 +210,7 @@ type enum_decl_case = {
   enum_decl_case_name : uident Marked.pos;
   enum_decl_case_typ : typ option;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -229,7 +230,7 @@ type enum_decl = {
   enum_decl_name : uident Marked.pos;
   enum_decl_cases : enum_decl_case Marked.pos list;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -247,7 +248,7 @@ type enum_decl = {
 
 type match_case_pattern =
   (path * uident Marked.pos) Marked.pos list * lident Marked.pos option
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -263,7 +264,7 @@ type match_case_pattern =
       }]
 
 type op_kind = KPoly | KInt | KDec | KMoney | KDate | KDuration
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "op_kind_map"; nude = true },
     visitors { variety = "iter"; name = "op_kind_iter"; nude = true }]
 
@@ -282,7 +283,7 @@ type binop =
   | Eq
   | Neq
   | Concat
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -299,7 +300,7 @@ type binop =
       }]
 
 type unop = Not | Minus of op_kind
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -325,7 +326,7 @@ type builtin_expression =
   | LastDayOfMonth
   | FirstDayOfMonth
   | Round
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "builtin_expression_map"; nude = true },
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]
 
@@ -334,7 +335,7 @@ type literal_date = {
   literal_date_month : (int[@opaque]);
   literal_date_year : (int[@opaque]);
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -351,12 +352,12 @@ type literal_date = {
 type literal_number =
   | Int of (string[@opaque])
   | Dec of (string[@opaque]) * (string[@opaque])
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "literal_number_map"; nude = true },
     visitors { variety = "iter"; name = "literal_number_iter"; nude = true }]
 
 type literal_unit = Percent | Year | Month | Day
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "literal_unit_map"; nude = true },
     visitors { variety = "iter"; name = "literal_unit_iter"; nude = true }]
 
@@ -364,7 +365,7 @@ type money_amount = {
   money_amount_units : (string[@opaque]);
   money_amount_cents : (string[@opaque]);
 }
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "money_amount_map"; nude = true },
     visitors { variety = "iter"; name = "money_amount_iter"; nude = true }]
 
@@ -373,7 +374,7 @@ type literal =
   | LBool of bool
   | LMoneyAmount of money_amount
   | LDate of literal_date
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -448,7 +449,7 @@ and naked_expression =
   | Ident of path * lident Marked.pos
   | Dotted of expression * (path * lident Marked.pos) Marked.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -482,7 +483,7 @@ type exception_to =
   | NotAnException
   | UnlabeledException
   | ExceptionToLabel of lident Marked.pos
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -506,7 +507,7 @@ type rule = {
   rule_consequence : (bool[@opaque]) Marked.pos;
   rule_state : lident Marked.pos option;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -530,7 +531,7 @@ type definition = {
   definition_expr : expression;
   definition_state : lident Marked.pos option;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -545,7 +546,7 @@ type definition = {
       }]
 
 type variation_typ = Increasing | Decreasing
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "variation_typ_map" },
     visitors { variety = "iter"; name = "variation_typ_iter" }]
 
@@ -553,7 +554,7 @@ type meta_assertion =
   | FixedBy of scope_var Marked.pos * lident Marked.pos
   | VariesWith of
       scope_var Marked.pos * expression * variation_typ Marked.pos option
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -571,7 +572,7 @@ type assertion = {
   assertion_condition : expression option;
   assertion_content : expression;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     { variety = "map"; ancestors = ["expression_map"]; name = "assertion_map" },
     visitors
@@ -586,7 +587,7 @@ type scope_use_item =
   | Definition of definition
   | Assertion of assertion
   | MetaAssertion of meta_assertion
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -612,7 +613,7 @@ type scope_use = {
   scope_use_name : uident Marked.pos;
   scope_use_items : scope_use_item Marked.pos list;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -627,7 +628,7 @@ type scope_use = {
       }]
 
 type io_input = Input | Context | Internal
-[@@deriving
+[@@deriving  yojson,
   visitors { variety = "map"; name = "io_input_map" },
     visitors { variety = "iter"; name = "io_input_iter" }]
 
@@ -635,7 +636,7 @@ type scope_decl_context_io = {
   scope_decl_context_io_input : io_input Marked.pos;
   scope_decl_context_io_output : bool Marked.pos;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -654,7 +655,7 @@ type scope_decl_context_scope = {
   scope_decl_context_scope_sub_scope : uident Marked.pos;
   scope_decl_context_scope_attribute : scope_decl_context_io;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -686,7 +687,7 @@ type scope_decl_context_data = {
   scope_decl_context_item_attribute : scope_decl_context_io;
   scope_decl_context_item_states : lident Marked.pos list;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -703,7 +704,7 @@ type scope_decl_context_data = {
 type scope_decl_context_item =
   | ContextData of scope_decl_context_data
   | ContextScope of scope_decl_context_scope
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -723,7 +724,7 @@ type scope_decl = {
   scope_decl_name : uident Marked.pos;
   scope_decl_context : scope_decl_context_item Marked.pos list;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -742,7 +743,7 @@ type code_item =
   | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -764,7 +765,7 @@ type code_item =
       }]
 
 type code_block = code_item Marked.pos list
-[@@deriving
+[@@deriving  yojson,
   visitors
     { variety = "map"; ancestors = ["code_item_map"]; name = "code_block_map" },
     visitors
@@ -775,7 +776,7 @@ type code_block = code_item Marked.pos list
       }]
 
 type source_repr = (string[@opaque]) Marked.pos
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -795,7 +796,7 @@ type law_heading = {
   law_heading_is_archive : bool; [@opaque]
   law_heading_precedence : (int[@opaque]);
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -813,7 +814,7 @@ type law_include =
   | PdfFile of (string[@opaque]) Marked.pos * (int[@opaque]) option
   | CatalaFile of (string[@opaque]) Marked.pos
   | LegislativeText of (string[@opaque]) Marked.pos
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -832,7 +833,7 @@ type law_structure =
   | LawHeading of law_heading * law_structure list
   | LawText of (string[@opaque])
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
-[@@deriving
+[@@deriving  yojson,
   visitors
     {
       variety = "map";
@@ -862,7 +863,7 @@ type program = {
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
 }
-[@@deriving
+[@@deriving  yojson,
   visitors
     { variety = "map"; ancestors = ["law_structure_map"]; name = "program_map" },
     visitors
@@ -873,6 +874,7 @@ type program = {
       }]
 
 type source_file = law_structure list
+[@@deriving  yojson]
 
 (** {1 Helpers}*)
 

@@ -47,7 +47,7 @@ module StateName = Uid.Gen ()
 
 (** Define a common base type for the expressions in most passes of the compiler *)
 
-type desugared = [ `Desugared ]
+type desugared = [ `Desugared ] 
 (** {2 Phantom types used to select relevant cases on the generic AST}
 
     we instantiate them with a polymorphic variant to take advantage of
@@ -64,8 +64,10 @@ type 'a any = [< desugared | scopelang | dcalc | lcalc ] as 'a
 (** {2 Types} *)
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
+[@@deriving yojson]
 
 type typ = naked_typ Marked.pos
+[@@deriving yojson]
 
 and naked_typ =
   | TLit of typ_lit
@@ -76,6 +78,7 @@ and naked_typ =
   | TArrow of typ * typ
   | TArray of typ
   | TAny
+[@@deriving yojson]
 
 (** {2 Constants and operators} *)
 
@@ -89,6 +92,7 @@ type log_entry =
   | BeginCall
   | EndCall
   | PosRecordIfTrueBool
+[@@deriving yojson]
 
 module Op = struct
   (** Classification of operators on how they should be typed *)

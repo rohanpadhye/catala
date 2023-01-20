@@ -16,6 +16,7 @@
 
 module type Info = sig
   type info
+  [@@deriving yojson]
 
   val to_string : info -> string
   val format : Format.formatter -> info -> unit
@@ -25,7 +26,9 @@ end
 
 module type Id = sig
   type t
+  [@@deriving yojson]
   type info
+  [@@deriving yojson]
 
   val fresh : info -> t
   val get_info : t -> info
@@ -40,7 +43,8 @@ end
 
 module Make (X : Info) () : Id with type info = X.info = struct
   module Ordering = struct
-    type t = { id : int; info : X.info }
+    type t = { id : int; info : X.info}
+    [@@deriving yojson]
 
     let compare (x : t) (y : t) : int = compare x.id y.id
     let equal x y = Int.equal x.id y.id
@@ -49,6 +53,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
   include Ordering
 
   type info = X.info
+  [@@deriving yojson]
 
   let counter = ref 0
 
@@ -66,6 +71,7 @@ end
 
 module MarkedString = struct
   type info = string Marked.pos
+  [@@deriving yojson]
 
   let to_string (s, _) = s
   let format fmt i = Format.pp_print_string fmt (to_string i)
