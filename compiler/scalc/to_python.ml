@@ -474,6 +474,9 @@ let format_ctx
       \        return not (self == other)@\n\
        @\n\
       \    def __str__(self) -> str:@\n\
+      \        @[<hov 4>return \"%a(%a)\".format(%a)@]
+       @\n\
+      \    def __repr__(self) -> str:@\n\
       \        @[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name
       struct_name
       (Format.pp_print_list
@@ -508,6 +511,16 @@ let format_ctx
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, _) ->
            Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
+      fields format_struct_name struct_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+         (fun fmt (struct_field, _) ->
+           Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
+      fields
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt (struct_field, _) ->
+           Format.fprintf fmt "self.%a.__repr__()" format_struct_field_name struct_field))
       fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
